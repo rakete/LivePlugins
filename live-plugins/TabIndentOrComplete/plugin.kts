@@ -1,0 +1,106 @@
+﻿import com.intellij.codeInsight.completion.CompletionProgressIndicator
+import com.intellij.codeInsight.completion.CompletionService
+import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.project.DumbAware
+import liveplugin.registerAction
+import liveplugin.show
+
+class TabIndentOrCompleteAction: AnAction(), DumbAware {
+    val actionManager = ActionManager.getInstance()
+
+    fun performAction(event: AnActionEvent, name: String) {
+        val dataContext = event.dataContext
+        val inputEvent = event.inputEvent
+
+        val action = actionManager.getAction(name)
+        if (action != null) {
+            val actionEvent = AnActionEvent.createEvent(action, dataContext, null, event.place, ActionUiKind.NONE, inputEvent)
+            action.actionPerformed(actionEvent)
+        }
+    }
+
+    fun indent(event: AnActionEvent) {
+        performAction(event, "AutoIndentLines")
+    }
+
+    fun emacsIndent(event: AnActionEvent) {
+        performAction(event, "EmacsStyleIndent")
+    }
+
+    fun complete(event: AnActionEvent) {
+        performAction(event, "CodeCompletion")
+    }
+
+    fun gotoLineStart(event: AnActionEvent) {
+        performAction(event, "EditorLineStart")
+    }
+
+    fun insertTab(event: AnActionEvent) {
+        performAction(event, "EditorTab")
+    }
+
+    fun escape(event: AnActionEvent) {
+        performAction(event, "EditorEscape")
+    }
+
+    override fun actionPerformed(event: AnActionEvent) {
+        val editor = event.getData(CommonDataKeys.EDITOR)
+        val caret = editor!!.caretModel!!.primaryCaret
+        val positionStart = caret!!.visualPosition
+        val startColumn = positionStart!!.column
+        val selectionModel = editor.selectionModel
+
+        if (selectionModel.hasSelection()) {
+            // - if there is an active selection, auto indent the region and
+            // then discard the active selection
+            show("Indenting region...")
+            indent(event)
+            escape(event)
+        } else {
+            // - if there is no active selection we'll try to indent and complete
+            // - first gotoLineStart is like pressing Home, it will move caret to the
+            // beginning of the current indentation, or the start of the line otherwise
+            gotoLineStart(event)
+
+            val positionAfterLineStartAction = caret!!.visualPosition
+            val afterLineStartColumn = positionAfterLineStartAction!!.column
+
+            // - if gotoLineStart moved the caret to the beginning of the line, use it
+            // again to move it back to the indentation
+            if (afterLineStartColumn == 0) {
+                gotoLineStart(event)
+            }
+            // - emacsIndent should indent according to the current language, or if the
+            // indentation is already correct or the language is not supported then it
+            // does nothing
+            emacsIndent(event)
+
+            val positionAfterIndentAction = caret!!.visualPosition
+            val afterIndentColumn = positionAfterIndentAction!!.column
+
+            // - if we're still at the same position after emacsIndent, then it did nothing
+            // and we can try to complete
+            if (afterIndentColumn == afterLineStartColumn && startColumn != 0) {
+                // - to complete we move caret back where we started and then complete
+                editor!!.caretModel!!.moveToVisualPosition(positionStart)
+                complete(event)
+            }
+
+            // - if we're at the startColumn after the emacsIndent then I just assume it
+            // is an empty line and insertTab
+            if (afterIndentColumn == startColumn) {
+                val completionService = CompletionService.getCompletionService()
+                val completionIndicator = completionService.currentCompletion as? CompletionProgressIndicator
+                if (completionIndicator == null) {
+                    insertTab(event)
+                    // - emacsIndent after insertTab magically fixes wrongly inserted tabs if the current
+                    // file can be automatically indented, and if not then we keep the tab
+                    emacsIndent(event)
+                }
+            }
+        }
+    }
+}
+
+registerAction(id = "TabIndentOrComplete", keyStroke = "TAB", action = TabIndentOrCompleteAction())
+if (!isIdeStartup) show("Enabled TabIndentOrComplete")
