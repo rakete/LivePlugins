@@ -62,7 +62,7 @@ class FocusToolOrMainWindowAction : AnAction(), DumbAware {
             val focusManager = IdeFocusManager.getInstance(project)
             val focusedComponent = focusManager.focusOwner
 
-            show(focusedComponent)
+            //show(focusedComponent)
             if (focusedComponent is EditorComponentImpl && !isEditorComponentInToolPanel(project, focusedComponent)) {
                 focusTool(event)
             } else {
