@@ -1,7 +1,10 @@
 ﻿import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionService
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.vfs.VirtualFile
 import liveplugin.registerAction
 import liveplugin.show
 
@@ -43,6 +46,12 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
         performAction(event, "EditorEscape")
     }
 
+    private fun isPythonFile(file: VirtualFile?): Boolean {
+        if (file == null) return false
+        val fileType = FileTypeManager.getInstance().getFileTypeByFile(file)
+        return fileType.name.equals("Python", ignoreCase = true)
+    }
+
     override fun actionPerformed(event: AnActionEvent) {
         val editor = event.getData(CommonDataKeys.EDITOR)
         val caret = editor!!.caretModel!!.primaryCaret
@@ -73,16 +82,21 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
             // - emacsIndent should indent according to the current language, or if the
             // indentation is already correct or the language is not supported then it
             // does nothing
-            emacsIndent(event)
+            val document = editor.document
+            val virtualFile = FileDocumentManager.getInstance().getFile(document)
+            if (!isPythonFile(virtualFile)) {
+                emacsIndent(event)
+            }
 
             val positionAfterIndentAction = caret!!.visualPosition
             val afterIndentColumn = positionAfterIndentAction!!.column
+
+            editor!!.caretModel!!.moveToVisualPosition(positionStart)
 
             // - if we're still at the same position after emacsIndent, then it did nothing
             // and we can try to complete
             if (afterIndentColumn == afterLineStartColumn && startColumn != 0) {
                 // - to complete we move caret back where we started and then complete
-                editor!!.caretModel!!.moveToVisualPosition(positionStart)
                 complete(event)
             }
 
