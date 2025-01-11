@@ -1,6 +1,7 @@
 ﻿import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionService
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.DumbAware
@@ -52,6 +53,22 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
         return fileType.name.equals("Python", ignoreCase = true)
     }
 
+    fun isCurrentLineEmpty(editor: Editor): Boolean {
+        val caretModel = editor.caretModel
+        val currentLine = caretModel.logicalPosition.line
+
+        val document = editor.document
+        if (currentLine < 0 || currentLine >= document.lineCount) {
+            return false // Out of bounds
+        }
+
+        val lineStartOffset = document.getLineStartOffset(currentLine)
+        val lineEndOffset = document.getLineEndOffset(currentLine)
+        val lineText = document.charsSequence.substring(lineStartOffset, lineEndOffset)
+
+        return lineText.trim().isEmpty()
+    }
+
     override fun actionPerformed(event: AnActionEvent) {
         val editor = event.getData(CommonDataKeys.EDITOR)
         val caret = editor!!.caretModel!!.primaryCaret
@@ -84,7 +101,7 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
             // does nothing
             val document = editor.document
             val virtualFile = FileDocumentManager.getInstance().getFile(document)
-            if (!isPythonFile(virtualFile)) {
+            if (!isPythonFile(virtualFile) && !isCurrentLineEmpty(editor)) {
                 emacsIndent(event)
             }
 
@@ -102,14 +119,11 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
 
             // - if we're at the startColumn after the emacsIndent then I just assume it
             // is an empty line and insertTab
-            if (afterIndentColumn == startColumn) {
+            if (isCurrentLineEmpty(editor)) {
                 val completionService = CompletionService.getCompletionService()
                 val completionIndicator = completionService.currentCompletion as? CompletionProgressIndicator
                 if (completionIndicator == null) {
                     insertTab(event)
-                    // - emacsIndent after insertTab magically fixes wrongly inserted tabs if the current
-                    // file can be automatically indented, and if not then we keep the tab
-                    emacsIndent(event)
                 }
             }
         }
