@@ -32,6 +32,25 @@ tasks.register("copyToLivePlugins") {
     println("Copied to live-plugins")
 }
 
+tasks.register("copyExternalTools") {
+    outputs.upToDateWhen { false }
+    doLast {
+        val srcDir = file(path = "tools")
+        val baseDir = file(path = "C:\\Users\\Rakete\\AppData\\Roaming\\JetBrains")
+
+        baseDir.listFiles()?.forEach { dir ->
+            val toolsDir = File(dir, "tools")
+            if (toolsDir.exists() && toolsDir.isDirectory) {
+                copy {
+                    from(srcDir)
+                    into(toolsDir)
+                }
+            }
+        }
+    }
+}
+
+
 tasks.assemble {
     dependsOn("copyToLivePlugins")
 }
