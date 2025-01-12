@@ -74,14 +74,12 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
         val caret = editor!!.caretModel.primaryCaret
         val positionStart = caret.visualPosition
         val startColumn = positionStart.column
-        val selectionModel = editor.selectionModel
 
-        if (selectionModel.hasSelection()) {
+        if (caret.hasSelection()) {
             // - if there is an active selection, auto indent the region and
             // then discard the active selection
             show("Indenting region...")
             indent(event)
-            escape(event)
         } else if (isCurrentLineEmpty(editor)) {
             // - if we're at the startColumn after the emacsIndent then I just assume it
             // is an empty line and insertTab
