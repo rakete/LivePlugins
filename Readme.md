@@ -11,6 +11,9 @@ This can be used to toggle between last focused tool and the main window by usin
 ### 3. **ShiftTabCompleteByWord**
 This is so I can use the same keybinding that I use for triggering inline suggestion for also completing the suggestion by word. 
 
+### 4. **CutLine**
+So I can Copy+Delete a line with one keybinding.
+
 ---
 
 ## Gradle Copy Tasks
