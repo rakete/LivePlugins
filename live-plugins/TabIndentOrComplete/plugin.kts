@@ -71,9 +71,9 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
 
     override fun actionPerformed(event: AnActionEvent) {
         val editor = event.getData(CommonDataKeys.EDITOR)
-        val caret = editor!!.caretModel!!.primaryCaret
-        val positionStart = caret!!.visualPosition
-        val startColumn = positionStart!!.column
+        val caret = editor!!.caretModel.primaryCaret
+        val positionStart = caret.visualPosition
+        val startColumn = positionStart.column
         val selectionModel = editor.selectionModel
 
         if (selectionModel.hasSelection()) {
@@ -82,14 +82,27 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
             show("Indenting region...")
             indent(event)
             escape(event)
+        } else if (isCurrentLineEmpty(editor)) {
+            // - if we're at the startColumn after the emacsIndent then I just assume it
+            // is an empty line and insertTab
+            val completionService = CompletionService.getCompletionService()
+            val completionIndicator = completionService.currentCompletion as? CompletionProgressIndicator
+            if (completionIndicator == null) {
+                insertTab(event)
+                emacsIndent(event)
+
+                /*val afterIndentColumn = editor.caretModel.primaryCaret.visualPosition.column
+                if (afterIndentColumn <= startColumn) {
+                    editor.caretModel.moveToVisualPosition(positionStart)
+                }*/
+            }
         } else {
             // - if there is no active selection we'll try to indent and complete
             // - first gotoLineStart is like pressing Home, it will move caret to the
             // beginning of the current indentation, or the start of the line otherwise
             gotoLineStart(event)
 
-            val positionAfterLineStartAction = caret!!.visualPosition
-            val afterLineStartColumn = positionAfterLineStartAction!!.column
+            val afterLineStartColumn = editor.caretModel.primaryCaret.visualPosition.column
 
             // - if gotoLineStart moved the caret to the beginning of the line, use it
             // again to move it back to the indentation
@@ -101,30 +114,17 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
             // does nothing
             val document = editor.document
             val virtualFile = FileDocumentManager.getInstance().getFile(document)
-            if (!isPythonFile(virtualFile) && !isCurrentLineEmpty(editor)) {
+            if (!isPythonFile(virtualFile)) {
                 emacsIndent(event)
             }
 
-            val positionAfterIndentAction = caret!!.visualPosition
-            val afterIndentColumn = positionAfterIndentAction!!.column
-
-            editor!!.caretModel!!.moveToVisualPosition(positionStart)
-
+            val afterIndentColumn = editor.caretModel.primaryCaret.visualPosition.column
             // - if we're still at the same position after emacsIndent, then it did nothing
             // and we can try to complete
             if (afterIndentColumn == afterLineStartColumn && startColumn != 0) {
                 // - to complete we move caret back where we started and then complete
+                editor.caretModel.moveToVisualPosition(positionStart)
                 complete(event)
-            }
-
-            // - if we're at the startColumn after the emacsIndent then I just assume it
-            // is an empty line and insertTab
-            if (isCurrentLineEmpty(editor)) {
-                val completionService = CompletionService.getCompletionService()
-                val completionIndicator = completionService.currentCompletion as? CompletionProgressIndicator
-                if (completionIndicator == null) {
-                    insertTab(event)
-                }
             }
         }
     }
