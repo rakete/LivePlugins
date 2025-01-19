@@ -59,7 +59,7 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
 
         val document = editor.document
         if (currentLine < 0 || currentLine >= document.lineCount) {
-            return false // Out of bounds
+            return false
         }
 
         val lineStartOffset = document.getLineStartOffset(currentLine)
@@ -87,7 +87,11 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
             val completionIndicator = completionService.currentCompletion as? CompletionProgressIndicator
             if (completionIndicator == null) {
                 insertTab(event)
-                emacsIndent(event)
+                val document = editor.document
+                val virtualFile = FileDocumentManager.getInstance().getFile(document)
+                if (!isPythonFile(virtualFile)) {
+                    emacsIndent(event)
+                }
 
                 /*val afterIndentColumn = editor.caretModel.primaryCaret.visualPosition.column
                 if (afterIndentColumn <= startColumn) {
