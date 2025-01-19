@@ -1,6 +1,6 @@
 ﻿# Live Plugins
 
-This is my something like a dot-files repo but for Jetbrains IntelliJ IDEs. It sets up my configuration with some common external tools that I prefer to have, and some [Live Plugins](https://github.com/dkandalov/live-plugin) that I implemented:
+This is something like a dot-files repo but for Jetbrains IntelliJ IDEs. It sets up my configuration with some common external tools that I prefer to have, and some [Live Plugins](https://github.com/dkandalov/live-plugin) that I implemented:
 
 ### 1. **TabIndentOrComplete**
 This implements an Action that can be used to either automatically indent, or complete if the indentation is already correct. It will also shift the indentation right in empty lines.
@@ -13,6 +13,10 @@ This is so I can use the same keybinding that I use for triggering inline sugges
 
 ### 4. **CutLine**
 So I can Copy+Delete a line with one keybinding.
+
+### 5. **YankIndent**
+
+Does yank + indent like in emacs, so I can cut a line and yank it in another place with correct indentation.
 
 ---
 
