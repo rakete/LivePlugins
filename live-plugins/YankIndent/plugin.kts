@@ -6,7 +6,6 @@ import liveplugin.registerAction
 import liveplugin.show
 import java.awt.datatransfer.DataFlavor
 
-
 class YankIndentAction : AnAction(), DumbAware {
     private val actionManager = ActionManager.getInstance()
 
@@ -43,6 +42,39 @@ class YankIndentAction : AnAction(), DumbAware {
 
         return lineText.trim().isEmpty()
     }
+
+    /*fun isNextCharWhitespace(editor: Editor): Boolean {
+        val caretModel = editor.caretModel
+        val charNext = caretModel.currentCaret.offset + 1
+
+        val document = editor.document
+        if (charNext >= editor.document.textLength || charNext >= document.getLineEndOffset(caretModel.logicalPosition.line) || editor.document.charsSequence[charNext] == '\n') {
+            return false
+        }
+
+        val isWhitespace = editor.document.charsSequence[charNext] == ' ' || editor.document.charsSequence[charNext] == '\t'
+        return isWhitespace
+    }*/
+
+    /*fun isEntireLineEmpty(editor: Editor): Boolean {
+        val caretModel = editor.caretModel
+        val currentLine = caretModel.logicalPosition.line
+
+        val document = editor.document
+        if (currentLine < 0 || currentLine >= document.lineCount) {
+            return false
+        }
+
+        val lineStartOffset = document.getLineStartOffset(currentLine)
+        val offset = caretModel.offset
+        if (lineStartOffset == offset) {
+            return false
+        }
+
+        val lineEndOffset = document.getLineEndOffset(currentLine)
+        val lineText = document.charsSequence.substring(lineStartOffset, lineEndOffset)
+        return lineText.trim().isEmpty()
+    }*/
 
     /*fun outsideParens(editor: Editor): Boolean {
         val caretModel = editor.caretModel
