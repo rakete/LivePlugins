@@ -1,4 +1,5 @@
 ﻿import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAware
 import liveplugin.registerAction
@@ -50,9 +51,33 @@ class CutLineAction : AnAction(), DumbAware {
         }
     }
 
+    fun isBeforeCaretEmpty(editor: Editor): Boolean {
+        val caretModel = editor.caretModel
+        val currentLine = caretModel.logicalPosition.line
+
+        val document = editor.document
+        if (currentLine < 0 || currentLine >= document.lineCount) {
+            return false
+        }
+
+        val lineStartOffset = document.getLineStartOffset(currentLine)
+        val offset = caretModel.offset
+        val lineText = document.charsSequence.substring(lineStartOffset, offset)
+
+        return lineText.trim().isEmpty()
+    }
+
     override fun actionPerformed(event: AnActionEvent) {
+        val editor = event.getData(CommonDataKeys.EDITOR) ?: return
+        if (!isBeforeCaretEmpty(editor)) {
+            performAction(event, "EditorLineStart")
+            performAction(event, "EmacsStyleIndent")
+        }
         copyLine(event)
         performAction(event, "EditorDeleteLine")
+        if (!isBeforeCaretEmpty(editor)) {
+            performAction(event, "EditorLineStart")
+        }
     }
 }
 

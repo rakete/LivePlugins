@@ -1,4 +1,5 @@
 ﻿import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAware
 import liveplugin.registerAction
@@ -27,22 +28,28 @@ class YankIndentAction : AnAction(), DumbAware {
         }
     }
 
-    /*fun isCurrentLineEmpty(editor: Editor): Boolean {
-    /*fun outsideParens(editor: Editor): Boolean {
+    fun isBeforeCaretEmpty(editor: Editor): Boolean {
         val caretModel = editor.caretModel
         val currentLine = caretModel.logicalPosition.line
 
         val document = editor.document
         if (currentLine < 0 || currentLine >= document.lineCount) {
             return false
+        }
+
+        val lineStartOffset = document.getLineStartOffset(currentLine)
+        val offset = caretModel.offset
+        val lineText = document.charsSequence.substring(lineStartOffset, offset)
+
+        return lineText.trim().isEmpty()
+    }
+
+    /*fun outsideParens(editor: Editor): Boolean {
+        val caretModel = editor.caretModel
         val charBefore = caretModel.currentCaret.offset - 1
         if (charBefore < 1) {
             return true
         }
-
-        val lineStartOffset = document.getLineStartOffset(currentLine)
-        val lineEndOffset = document.getLineEndOffset(currentLine)
-        val lineText = document.charsSequence.substring(lineStartOffset, lineEndOffset)
         
         val isNotAfterOpenParen = editor.document.charsSequence[charBefore] != '(' && editor.document.charsSequence[charBefore] != '[' && editor.document.charsSequence[charBefore] != '{'
         val isNotBeforeCloseParen = editor.document.charsSequence[charBefore] != ')' && editor.document.charsSequence[charBefore] != ']' && editor.document.charsSequence[charBefore] != '}'
@@ -53,7 +60,6 @@ class YankIndentAction : AnAction(), DumbAware {
         val isNotAfterAmpersand = editor.document.charsSequence[charBefore] != '&' && (editor.document.charsSequence[charBefore - 1] != '&' && editor.document.charsSequence[charBefore] == ' ')
         val isNotAfterPipe = editor.document.charsSequence[charBefore] != '|' && (editor.document.charsSequence[charBefore - 1] != '|' && editor.document.charsSequence[charBefore] == ' ')
 
-        return lineText.trim().isEmpty()
         val isNotAfterSemicolon = editor.document.charsSequence[charBefore] != ';' && (editor.document.charsSequence[charBefore - 1] != ';' && editor.document.charsSequence[charBefore] == ' ')
         val isNotAfterQuestionMark = editor.document.charsSequence[charBefore] != '?' && (editor.document.charsSequence[charBefore - 1] != '?' && editor.document.charsSequence[charBefore] == ' ')
         val isNotAfterExclamationMark = editor.document.charsSequence[charBefore] != '!' && (editor.document.charsSequence[charBefore - 1] != '!' && editor.document.charsSequence[charBefore] == ' ')
@@ -83,7 +89,7 @@ class YankIndentAction : AnAction(), DumbAware {
 
         val clipboardContent = CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)
         val n = clipboardContent?.count { it == '\n' } ?: 0
-        if (n == 0) {
+        if (n == 0 && isBeforeCaretEmpty(editor)) {
             performAction(event, "EditorUp")
             performAction(event, "EditorLineEnd")
             performAction(event, "EditorEnter")
