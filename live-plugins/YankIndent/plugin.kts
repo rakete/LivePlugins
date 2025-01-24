@@ -1,10 +1,12 @@
 ﻿import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAware
 import liveplugin.registerAction
 import liveplugin.show
 import java.awt.datatransfer.DataFlavor
+import java.util.*
 
 class YankIndentAction : AnAction(), DumbAware {
     private val actionManager = ActionManager.getInstance()
@@ -135,6 +137,14 @@ class YankIndentAction : AnAction(), DumbAware {
         selectionModel.setSelection(a, b)
 
         performAction(event, "EmacsStyleIndent")
+        Timer().schedule(object : TimerTask() {
+            override fun run() {
+                // Make sure removal runs on the UI thread
+                ApplicationManager.getApplication().invokeLater {
+                    selectionModel.removeSelection()
+                }
+            }
+        }, 50)
     }
 }
 
