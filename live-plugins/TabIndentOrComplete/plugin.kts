@@ -1,6 +1,7 @@
 ﻿import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionService
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileTypes.FileTypeManager
@@ -8,6 +9,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.vfs.VirtualFile
 import liveplugin.registerAction
 import liveplugin.show
+import java.util.*
 
 class TabIndentOrCompleteAction: AnAction(), DumbAware {
     val actionManager = ActionManager.getInstance()
@@ -78,8 +80,16 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
         if (caret.hasSelection()) {
             // - if there is an active selection, auto indent the region and
             // then discard the active selection
-            show("Indenting region...")
-            indent(event)
+            val selectionModel = editor.selectionModel
+            emacsIndent(event)
+            Timer().schedule(object : TimerTask() {
+                override fun run() {
+                    // Make sure removal runs on the UI thread
+                    ApplicationManager.getApplication().invokeLater {
+                        selectionModel.removeSelection()
+                    }
+                }
+            }, 50)
         } else if (isCurrentLineEmpty(editor)) {
             // - if we're at the startColumn after the emacsIndent then I just assume it
             // is an empty line and insertTab
