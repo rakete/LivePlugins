@@ -80,13 +80,12 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
         if (caret.hasSelection()) {
             // - if there is an active selection, auto indent the region and
             // then discard the active selection
-            val selectionModel = editor.selectionModel
             emacsIndent(event)
             Timer().schedule(object : TimerTask() {
                 override fun run() {
                     // Make sure removal runs on the UI thread
                     ApplicationManager.getApplication().invokeLater {
-                        selectionModel.removeSelection()
+                        caret.removeSelection()
                     }
                 }
             }, 50)
