@@ -45,6 +45,22 @@ class YankIndentAction : AnAction(), DumbAware {
         return lineText.trim().isEmpty()
     }
 
+    fun isAfterCaretEmpty(editor: Editor): Boolean {
+        val caretModel = editor.caretModel
+        val currentLine = caretModel.logicalPosition.line
+
+        val document = editor.document
+        if (currentLine < 0 || currentLine >= document.lineCount) {
+            return false
+        }
+
+        val lineEndOffset = document.getLineEndOffset(currentLine)
+        val offset = caretModel.offset
+        val lineText = document.charsSequence.substring(offset, lineEndOffset)
+
+        return lineText.trim().isEmpty()
+    }
+
     /*fun isNextCharWhitespace(editor: Editor): Boolean {
         val caretModel = editor.caretModel
         val charNext = caretModel.currentCaret.offset + 1
@@ -123,7 +139,12 @@ class YankIndentAction : AnAction(), DumbAware {
 
         val clipboardContent = CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)
         val n = clipboardContent?.count { it == '\n' } ?: 0
+
         if (n == 0 && isBeforeCaretEmpty(editor)) {
+            if (isAfterCaretEmpty(editor)) {
+                performAction(event, "EditorDeleteLine")
+            }
+
             performAction(event, "EditorUp")
             performAction(event, "EditorLineEnd")
             performAction(event, "EditorEnter")
