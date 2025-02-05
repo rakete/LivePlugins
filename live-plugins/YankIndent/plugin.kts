@@ -94,46 +94,6 @@ class YankIndentAction : AnAction(), DumbAware {
         return lineText.trim().isEmpty()
     }*/
 
-    /*fun outsideParens(editor: Editor): Boolean {
-        val caretModel = editor.caretModel
-        val charBefore = caretModel.currentCaret.offset - 1
-        if (charBefore < 1) {
-            return true
-        }
-        
-        val isNotAfterOpenParen = editor.document.charsSequence[charBefore] != '(' && editor.document.charsSequence[charBefore] != '[' && editor.document.charsSequence[charBefore] != '{'
-        val isNotBeforeCloseParen = editor.document.charsSequence[charBefore] != ')' && editor.document.charsSequence[charBefore] != ']' && editor.document.charsSequence[charBefore] != '}'
-
-        val isNotAfterComma = editor.document.charsSequence[charBefore] != ',' && (editor.document.charsSequence[charBefore - 1] != ',' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterPeriod = editor.document.charsSequence[charBefore] != '.' && (editor.document.charsSequence[charBefore - 1] != '.' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterEqual = editor.document.charsSequence[charBefore] != '=' && (editor.document.charsSequence[charBefore - 1] != '=' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterAmpersand = editor.document.charsSequence[charBefore] != '&' && (editor.document.charsSequence[charBefore - 1] != '&' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterPipe = editor.document.charsSequence[charBefore] != '|' && (editor.document.charsSequence[charBefore - 1] != '|' && editor.document.charsSequence[charBefore] == ' ')
-
-        val isNotAfterSemicolon = editor.document.charsSequence[charBefore] != ';' && (editor.document.charsSequence[charBefore - 1] != ';' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterQuestionMark = editor.document.charsSequence[charBefore] != '?' && (editor.document.charsSequence[charBefore - 1] != '?' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterExclamationMark = editor.document.charsSequence[charBefore] != '!' && (editor.document.charsSequence[charBefore - 1] != '!' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterAt = editor.document.charsSequence[charBefore] != '@' && (editor.document.charsSequence[charBefore - 1] != '@' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterDollar = editor.document.charsSequence[charBefore] != '$' && (editor.document.charsSequence[charBefore - 1] != '$' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterBacktick = editor.document.charsSequence[charBefore] != '`' && (editor.document.charsSequence[charBefore - 1] != '`' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterTilde = editor.document.charsSequence[charBefore] != '~' && (editor.document.charsSequence[charBefore - 1] != '~' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterPercent = editor.document.charsSequence[charBefore] != '%' && (editor.document.charsSequence[charBefore - 1] != '%' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterSingleQuote = editor.document.charsSequence[charBefore] != '\'' && (editor.document.charsSequence[charBefore - 1] != '\'' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterDoubleQuote = editor.document.charsSequence[charBefore] != '"' && (editor.document.charsSequence[charBefore - 1] != '"' && editor.document.charsSequence[charBefore] == ' ')
-
-        val isNotAfterPlus = editor.document.charsSequence[charBefore] != '+' && (editor.document.charsSequence[charBefore - 1] != '+' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterMinus = editor.document.charsSequence[charBefore] != '-' && (editor.document.charsSequence[charBefore - 1] != '-' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterAsterisk = editor.document.charsSequence[charBefore] != '*' && (editor.document.charsSequence[charBefore - 1] != '*' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterSlash = editor.document.charsSequence[charBefore] != '/' && (editor.document.charsSequence[charBefore - 1] != '/' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterLessThan = editor.document.charsSequence[charBefore] != '<' && (editor.document.charsSequence[charBefore - 1] != '<' && editor.document.charsSequence[charBefore] == ' ')
-        val isNotAfterGreaterThan = editor.document.charsSequence[charBefore] != '>' && (editor.document.charsSequence[charBefore - 1] != '>' && editor.document.charsSequence[charBefore] == ' ')
-
-        return isNotAfterOpenParen && isNotBeforeCloseParen &&
-                isNotAfterComma && isNotAfterPeriod && isNotAfterEqual && isNotAfterAmpersand && isNotAfterPipe &&
-                isNotAfterSemicolon && isNotAfterQuestionMark && isNotAfterExclamationMark && isNotAfterAt && isNotAfterDollar && isNotAfterBacktick && isNotAfterTilde && isNotAfterPercent && isNotAfterSingleQuote && isNotAfterDoubleQuote &&
-                isNotAfterPlus && isNotAfterMinus && isNotAfterAsterisk && isNotAfterSlash && isNotAfterLessThan && isNotAfterGreaterThan
-    }*/
-
     override fun actionPerformed(event: AnActionEvent) {
         val editor = event.getData(CommonDataKeys.EDITOR) ?: return
 
