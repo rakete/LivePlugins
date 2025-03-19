@@ -51,10 +51,11 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
         performAction(event, "EditorEscape")
     }
 
-    private fun isPythonFile(file: VirtualFile?): Boolean {
+    private fun isIndentFile(file: VirtualFile?): Boolean {
         if (file == null) return false
         val fileType = FileTypeManager.getInstance().getFileTypeByFile(file)
-        return fileType.name.equals("Python", ignoreCase = true)
+        //show(fileType.name)
+        return !fileType.name.equals("python", ignoreCase = true) && !fileType.name.equals("textmate", ignoreCase = true)
     }
 
     fun isCurrentLineEmpty(editor: Editor): Boolean {
@@ -141,7 +142,7 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
             val completionIndicator = completionService.currentCompletion as? CompletionProgressIndicator
             if (completionIndicator == null) {
                 insertTab(event)
-                if (!isPythonFile(virtualFile)) {
+                if (isIndentFile(virtualFile)) {
                     emacsIndent(event)
                 }
 
@@ -164,19 +165,18 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
                 gotoLineStart(event)
             }
 
-            if (!isPythonFile(virtualFile)) {
+            if (isIndentFile(virtualFile)) {
                 // - emacsIndent should indent according to the current language, or if the
                 // indentation is already correct or the language is not supported then it
                 // does nothing
-
                 emacsIndent(event)
 
                 val afterIndentColumn = editor.caretModel.primaryCaret.visualPosition.column
                 // - if we're still at the same position after emacsIndent, then it did nothing
                 // and we can try to complete
-                editor.caretModel.moveToVisualPosition(positionStart)
                 if (afterIndentColumn == afterLineStartColumn && startColumn != 0) {
                     // - to complete we move caret back where we started and then complete
+                    editor.caretModel.moveToVisualPosition(positionStart)
                     complete(event)
                 }
             } else {
