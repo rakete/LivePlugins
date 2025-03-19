@@ -103,11 +103,11 @@ class YankIndentAction : AnAction(), DumbAware {
         if (n == 0 && isBeforeCaretEmpty(editor)) {
             if (isAfterCaretEmpty(editor)) {
                 performAction(event, "EditorDeleteLine")
-            }
 
-            performAction(event, "EditorUp")
-            performAction(event, "EditorLineEnd")
-            performAction(event, "EditorEnter")
+                performAction(event, "EditorUp")
+                performAction(event, "EditorLineEnd")
+                performAction(event, "EditorEnter")
+            }
         }
 
         val a = editor.caretModel.offset

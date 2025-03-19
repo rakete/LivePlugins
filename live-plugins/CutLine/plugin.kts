@@ -30,7 +30,7 @@ class CutLineAction : AnAction(), DumbAware {
 
         // Copy the line content to the clipboard
         val copyPasteManager = CopyPasteManager.getInstance()
-        copyPasteManager.setContents(StringSelection(lineContent))
+        copyPasteManager.setContents(StringSelection(lineContent + '\n'))
     }
 
     fun performAction(event: AnActionEvent, actionId: String) {
