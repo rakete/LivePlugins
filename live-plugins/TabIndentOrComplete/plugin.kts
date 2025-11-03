@@ -55,7 +55,9 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
         if (file == null) return false
         val fileType = FileTypeManager.getInstance().getFileTypeByFile(file)
         //show(fileType.name)
-        return !fileType.name.equals("python", ignoreCase = true) && !fileType.name.equals("textmate", ignoreCase = true)
+        return !fileType.name.equals("python", ignoreCase = true) &&
+                !fileType.name.equals("textmate", ignoreCase = true) &&
+                !fileType.name.equals("plain_text", ignoreCase = true)
     }
 
     fun isCurrentLineEmpty(editor: Editor): Boolean {
