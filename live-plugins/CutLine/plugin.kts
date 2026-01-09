@@ -68,7 +68,12 @@ class CutLineAction : AnAction(), DumbAware {
     }
 
     override fun actionPerformed(event: AnActionEvent) {
-        val editor = event.getData(CommonDataKeys.EDITOR) ?: return
+        val editor = event.getData(CommonDataKeys.EDITOR) ?: run {
+            copyLine(event)
+            performAction(event, "EditorDeleteLine")
+            performAction(event, "EditorLineStart")
+            return
+        }
         if (!isBeforeCaretEmpty(editor)) {
             performAction(event, "EditorLineStart")
             performAction(event, "EmacsStyleIndent")

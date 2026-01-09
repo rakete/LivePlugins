@@ -95,7 +95,10 @@ class YankIndentAction : AnAction(), DumbAware {
     }*/
 
     override fun actionPerformed(event: AnActionEvent) {
-        val editor = event.getData(CommonDataKeys.EDITOR) ?: return
+        val editor = event.getData(CommonDataKeys.EDITOR) ?: run {
+            performAction(event, "\$Paste")
+            return
+        }
 
         val clipboardContent = CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)
         val n = clipboardContent?.count { it == '\n' } ?: 0
