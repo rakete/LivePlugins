@@ -29,6 +29,9 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
 
     fun indent(event: AnActionEvent) {
         performAction(event, "AutoIndentLines")
+        performAction(event, "EditorUp")
+        performAction(event, "EditorLineEnd")
+        performAction(event, "EditorLineStart")
     }
 
     fun emacsIndent(event: AnActionEvent) {
@@ -159,7 +162,7 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
             // beginning of the current indentation, or the start of the line otherwise
             gotoLineStart(event)
 
-            val afterLineStartColumn = editor.caretModel.primaryCaret.visualPosition.column
+            var afterLineStartColumn = editor.caretModel.primaryCaret.visualPosition.column
 
             // - if gotoLineStart moved the caret to the beginning of the line, use it
             // again to move it back to the indentation
@@ -173,13 +176,23 @@ class TabIndentOrCompleteAction: AnAction(), DumbAware {
                 // does nothing
                 emacsIndent(event)
 
-                val afterIndentColumn = editor.caretModel.primaryCaret.visualPosition.column
+                var afterIndentColumn = editor.caretModel.primaryCaret.visualPosition.column
                 // - if we're still at the same position after emacsIndent, then it did nothing
                 // and we can try to complete
                 if (afterIndentColumn == afterLineStartColumn && startColumn != 0) {
                     // - to complete we move caret back where we started and then complete
                     editor.caretModel.moveToVisualPosition(positionStart)
                     complete(event)
+                } else {
+                    editor.caretModel.moveToVisualPosition(positionStart)
+                    afterLineStartColumn = editor.caretModel.primaryCaret.visualPosition.column
+
+                    indent(event)
+
+                    afterIndentColumn = editor.caretModel.primaryCaret.visualPosition.column
+                    if (afterIndentColumn == afterLineStartColumn) {
+                        insertTab(event)
+                    }
                 }
             } else {
                 editor.caretModel.moveToVisualPosition(positionStart)
