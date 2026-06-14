@@ -99,6 +99,11 @@ class YankIndentAction : AnAction(), DumbAware {
             performAction(event, "\$Paste")
             return
         }
+        val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE)
+        if (virtualFile != null && (virtualFile.extension == "yaml" || virtualFile.extension == "yml")) {
+            performAction(event, "\$Paste")
+            return
+        }
 
         val clipboardContent = CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)
         val n = clipboardContent?.count { it == '\n' } ?: 0
@@ -113,6 +118,10 @@ class YankIndentAction : AnAction(), DumbAware {
             }
         }
 
+        if (n > 0 && isBeforeCaretEmpty(editor)) {
+            performAction(event, "EmacsStyleIndent")
+            performAction(event, "EditorLineStart")
+        }
         val a = editor.caretModel.offset
         performAction(event, "\$Paste")
         val b = editor.caretModel.offset
