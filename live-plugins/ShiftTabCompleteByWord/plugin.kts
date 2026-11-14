@@ -48,6 +48,7 @@ data class FimConfig(
     val maxTokens: Int,
     val maxSuggestionLines: Int,
     val temperature: Double,
+    val topP: Double,
     val stopSequences: List<String>,
     val connectTimeoutMs: Int,
     val readTimeoutMs: Int,
@@ -62,6 +63,7 @@ object FimSettings {
     const val DEFAULT_TEMPLATE = "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>"
     const val DEFAULT_STOP = "<|file_separator|>\n<|endoftext|>\n\\n\\n"
     const val DEFAULT_TEMPERATURE = 0.1
+    const val DEFAULT_TOP_P = 0.95
 
     private fun str(key: String, default: String) = props.getValue(P + key, default)
     private fun setStr(key: String, value: String, default: String) = props.setValue(P + key, value, default)
@@ -99,6 +101,10 @@ object FimSettings {
     var temperature: Double
         get() = str("temperature", DEFAULT_TEMPERATURE.toString()).toDoubleOrNull() ?: DEFAULT_TEMPERATURE
         set(v) = setStr("temperature", v.toString(), DEFAULT_TEMPERATURE.toString())
+
+    var topP: Double
+        get() = str("topP", DEFAULT_TOP_P.toString()).toDoubleOrNull() ?: DEFAULT_TOP_P
+        set(v) = setStr("topP", v.toString(), DEFAULT_TOP_P.toString())
 
     /** One stop sequence per line; `\n` and `\t` escapes are supported. */
     var stopSequencesRaw: String
@@ -147,6 +153,7 @@ object FimSettings {
         maxTokens = maxTokens,
         maxSuggestionLines = maxSuggestionLines,
         temperature = temperature,
+        topP = topP,
         stopSequences = parseStopSequences(stopSequencesRaw),
         connectTimeoutMs = connectTimeoutMs,
         readTimeoutMs = readTimeoutMs,
@@ -215,6 +222,22 @@ class FimSettingsConfigurable : BoundConfigurable("Custom FIM Completion") {
                         if (v != null && v in 0.0..2.0) null else error("Enter a number between 0 and 2")
                     }
             }
+            row("Top P:") {
+                textField()
+                    .bindText(
+                        { FimSettings.topP.toString() },
+                        { text -> text.toDoubleOrNull()?.let { FimSettings.topP = it } }
+                    )
+                    .columns(COLUMNS_SHORT)
+                    .validationOnInput { field ->
+                        val v = field.text.toDoubleOrNull()
+                        if (v != null && v in 0.0..1.0) null else error("Enter a number between 0 and 1")
+                    }
+                    .validationOnApply { field ->
+                        val v = field.text.toDoubleOrNull()
+                        if (v != null && v in 0.0..1.0) null else error("Enter a number between 0 and 1")
+                    }
+            }
             row("Stop sequences:") {
                 textArea().rows(4).bindText(FimSettings::stopSequencesRaw).align(AlignX.FILL)
                     .comment("One per line. Use <code>\\n</code> for newline and <code>\\t</code> for tab.")
@@ -274,7 +297,9 @@ class CustomFimInlineProvider : InlineCompletionProvider {
         val text = document.charsSequence
         val caretLine = document.getLineNumber(caretOffset)
         val prefixStart = document.getLineStartOffset(max(0, caretLine - config.prefixLines))
-        val suffixEnd = document.getLineEndOffset(min(document.lineCount - 1, caretLine + config.suffixLines))
+        val suffixLineEnd = min(document.lineCount - 1, caretLine + config.suffixLines)
+        val suffixEnd =
+            if (suffixLineEnd >= document.lineCount) text.length else document.getLineEndOffset(suffixLineEnd)
         return text.subSequence(prefixStart, caretOffset).toString() to
                 text.subSequence(caretOffset, suffixEnd).toString()
     }
@@ -297,12 +322,25 @@ class CustomFimInlineProvider : InlineCompletionProvider {
                 }
             }
 
+            val stopSequences = config.stopSequences.toMutableList()
+            val suffixLines = suffix.lines()
+            val firstLine = suffixLines.firstOrNull()
+            val secondSuffixLine = if (firstLine?.trim().isNullOrEmpty()) {
+                suffixLines.drop(1).firstOrNull()
+            } else {
+                firstLine
+            }
+            if (!secondSuffixLine?.trim().isNullOrEmpty()) {
+                stopSequences.add("\n" + secondSuffixLine)
+            }
+
             val requestBody = mapOf(
                 "model" to config.model,
                 "prompt" to buildPrompt(config.promptTemplate, prefix, suffix),
                 "max_tokens" to config.maxTokens,
                 "temperature" to config.temperature,
-                "stop" to config.stopSequences
+                "top_p" to config.topP,
+                "stop" to stopSequences
             )
 
             OutputStreamWriter(connection.outputStream, Charsets.UTF_8).use { writer ->
@@ -359,7 +397,7 @@ class ShiftTabCompleteByWord : AnAction(), DumbAware {
 val fimConfigurableEP = object : ConfigurableEP<Configurable>() {
     init {
         id = "custom.fim.completion.settings"
-        displayName = "Custom FIM Completion"
+        displayName = "Shift Tab Complete By Word"
         groupId = "tools"
         PluginManagerCore.getPlugin(PluginId.getId("LivePlugin"))?.let { pluginDescriptor = it }
     }
