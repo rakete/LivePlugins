@@ -107,37 +107,40 @@ class YankIndentAction : AnAction(), DumbAware {
 
         val clipboardContent = CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)
         val n = clipboardContent?.count { it == '\n' } ?: 0
+        val project = editor.project
 
-        if (n == 0 && isBeforeCaretEmpty(editor)) {
-            if (isAfterCaretEmpty(editor)) {
-                performAction(event, "EditorDeleteLine")
+        com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(project) {
+            if (n == 0 && isBeforeCaretEmpty(editor)) {
+                if (isAfterCaretEmpty(editor)) {
+                    performAction(event, "EditorDeleteLine")
 
-                performAction(event, "EditorUp")
-                performAction(event, "EditorLineEnd")
-                performAction(event, "EditorEnter")
-            }
-        }
-
-        if (n > 0 && isBeforeCaretEmpty(editor)) {
-            performAction(event, "EmacsStyleIndent")
-            performAction(event, "EditorLineStart")
-        }
-        val a = editor.caretModel.offset
-        performAction(event, "\$Paste")
-        val b = editor.caretModel.offset
-
-        val selectionModel = editor.selectionModel
-        selectionModel.setSelection(a, b)
-
-        performAction(event, "EmacsStyleIndent")
-        Timer().schedule(object : TimerTask() {
-            override fun run() {
-                // Make sure removal runs on the UI thread
-                ApplicationManager.getApplication().invokeLater {
-                    selectionModel.removeSelection()
+                    performAction(event, "EditorUp")
+                    performAction(event, "EditorLineEnd")
+                    performAction(event, "EditorEnter")
                 }
             }
-        }, 50)
+
+            if (n > 0 && isBeforeCaretEmpty(editor)) {
+                performAction(event, "EmacsStyleIndent")
+                performAction(event, "EditorLineStart")
+            }
+            val a = editor.caretModel.offset
+            performAction(event, "\$Paste")
+            val b = editor.caretModel.offset
+
+            val selectionModel = editor.selectionModel
+            selectionModel.setSelection(a, b)
+
+            performAction(event, "AutoIndentLines")
+            Timer().schedule(object : TimerTask() {
+                override fun run() {
+                    // Make sure removal runs on the UI thread
+                    ApplicationManager.getApplication().invokeLater {
+                        selectionModel.removeSelection()
+                    }
+                }
+            }, 50)
+        }
     }
 }
 
