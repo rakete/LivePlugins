@@ -15,6 +15,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.options.BoundConfigurable
@@ -366,7 +367,9 @@ val fimConfigurableEP = object : ConfigurableEP<Configurable>() {
     override fun canCreateConfigurable() = true
     override fun createConfigurable(): Configurable = FimSettingsConfigurable()
 }
-Configurable.APPLICATION_CONFIGURABLE.point.registerExtension(fimConfigurableEP, pluginDisposable)
+ExtensionPointName.create<ConfigurableEP<Configurable>>("com.intellij.applicationConfigurable")
+    .point
+    .registerExtension(fimConfigurableEP, pluginDisposable)
 
 InlineCompletionProvider.EP_NAME.point.registerExtension(
     CustomFimInlineProvider(),
