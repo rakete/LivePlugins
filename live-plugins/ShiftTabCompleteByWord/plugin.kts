@@ -58,7 +58,7 @@ object FimSettings {
     private val props get() = PropertiesComponent.getInstance()
 
     const val DEFAULT_BASE_URL = "https://lmg-rotom.jedi.lazor.de/v1"
-    const val DEFAULT_MODEL = "Ditto Tabbyapi/Qwen2.5-Coder-3B-4.0bpw"
+    const val DEFAULT_MODEL = "Ditto Tabbyapi/default-model"
     const val DEFAULT_TEMPLATE = "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>"
     const val DEFAULT_STOP = "<|file_separator|>\n<|endoftext|>\n\\n\\n"
     const val DEFAULT_TEMPERATURE = 0.1
@@ -89,12 +89,12 @@ object FimSettings {
         set(v) = setInt("suffixLines", v, 30)
 
     var maxTokens: Int
-        get() = int("maxTokens", 64)
-        set(v) = setInt("maxTokens", v, 64)
+        get() = int("maxTokens", 128)
+        set(v) = setInt("maxTokens", v, 128)
 
     var maxSuggestionLines: Int
-        get() = int("maxSuggestionLines", 5)
-        set(v) = setInt("maxSuggestionLines", v, 5)
+        get() = int("maxSuggestionLines", 20)
+        set(v) = setInt("maxSuggestionLines", v, 20)
 
     var temperature: Double
         get() = str("temperature", DEFAULT_TEMPERATURE.toString()).toDoubleOrNull() ?: DEFAULT_TEMPERATURE
